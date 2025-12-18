@@ -203,6 +203,7 @@ fun StatisticsScreen(
                     }
                 }
             }
+            }
         }
     }
 }
@@ -244,14 +245,14 @@ private fun ActivityFilterDropdown(
             onDismissRequest = { expanded = false }
         ) {
             DropdownMenuItem(
-                text = { 
+                text = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = "全部活动",
-                            fontWeight = if (selectedActivityId == null) 
-                                FontWeight.Bold 
+                            fontWeight = if (selectedActivityId == null)
+                                FontWeight.Bold
                             else FontWeight.Normal
                         )
                     }
@@ -263,7 +264,7 @@ private fun ActivityFilterDropdown(
             )
             activities.forEach { activity ->
                 DropdownMenuItem(
-                    text = { 
+                    text = {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -278,8 +279,8 @@ private fun ActivityFilterDropdown(
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
                                 text = activity.name,
-                                fontWeight = if (selectedActivityId == activity.id) 
-                                    FontWeight.Bold 
+                                fontWeight = if (selectedActivityId == activity.id)
+                                    FontWeight.Bold
                                 else FontWeight.Normal
                             )
                         }
