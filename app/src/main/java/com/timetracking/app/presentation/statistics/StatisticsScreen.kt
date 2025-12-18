@@ -1,6 +1,5 @@
 package com.timetracking.app.presentation.statistics
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,8 +9,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -54,34 +55,49 @@ fun StatisticsScreen(
     val selectedYear by viewModel.selectedYear.collectAsState()
     val selectedMonth by viewModel.selectedMonth.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Column {
-                        Text(
-                            text = "统计分析",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "查看你的时间分布",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+    val gradientBrush = Brush.verticalGradient(
+        listOf(
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+            Color.Transparent
+        )
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(gradientBrush)
+    ) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Column {
+                            Text(
+                                text = "统计分析",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "查看你的时间分布",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surface
+                    )
                 )
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
             // View mode tabs with better styling
             TabRow(
                 selectedTabIndex = viewMode.ordinal,
@@ -186,6 +202,7 @@ fun StatisticsScreen(
                     }
                 }
             }
+            }
         }
     }
 }
@@ -227,14 +244,14 @@ private fun ActivityFilterDropdown(
             onDismissRequest = { expanded = false }
         ) {
             DropdownMenuItem(
-                text = { 
+                text = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = "全部活动",
-                            fontWeight = if (selectedActivityId == null) 
-                                FontWeight.Bold 
+                            fontWeight = if (selectedActivityId == null)
+                                FontWeight.Bold
                             else FontWeight.Normal
                         )
                     }
@@ -246,7 +263,7 @@ private fun ActivityFilterDropdown(
             )
             activities.forEach { activity ->
                 DropdownMenuItem(
-                    text = { 
+                    text = {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -261,8 +278,8 @@ private fun ActivityFilterDropdown(
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
                                 text = activity.name,
-                                fontWeight = if (selectedActivityId == activity.id) 
-                                    FontWeight.Bold 
+                                fontWeight = if (selectedActivityId == activity.id)
+                                    FontWeight.Bold
                                 else FontWeight.Normal
                             )
                         }
