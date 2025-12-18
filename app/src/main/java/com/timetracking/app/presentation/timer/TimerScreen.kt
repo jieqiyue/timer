@@ -1,8 +1,8 @@
 package com.timetracking.app.presentation.timer
 
-import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,10 +25,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,12 +51,11 @@ import com.timetracking.app.ui.utils.rememberWindowSize
 fun TimerScreen(
     activityId: Long,
     onFinished: () -> Unit,
-    viewModel: TimerViewModel = hiltViewModel()
+    viewModel: TimerViewModel = hiltViewModel(),
 ) {
     val timerState by viewModel.timerState.collectAsState()
     val windowSize = rememberWindowSize()
-    
-    // Load activity and start timer when screen is first composed
+
     androidx.compose.runtime.LaunchedEffect(activityId) {
         viewModel.loadActivityAndStartTimer(activityId)
     }
@@ -67,12 +66,20 @@ fun TimerScreen(
         else -> MaterialTheme.colorScheme.primary
     }
 
+    val gradientBrush = Brush.verticalGradient(
+        colors = listOf(
+            backgroundColor.copy(alpha = 0.96f),
+            backgroundColor.copy(alpha = 0.9f),
+            backgroundColor.copy(alpha = 0.72f)
+        )
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(backgroundColor)
+            .background(gradientBrush)
     ) {
-        // Use different layouts for portrait and landscape
+        DecorativeGlow()
         if (windowSize.orientation == ScreenOrientation.PORTRAIT) {
             TimerPortraitLayout(
                 timerState = timerState,
@@ -90,10 +97,28 @@ fun TimerScreen(
 }
 
 @Composable
+private fun DecorativeGlow() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .size(320.dp)
+                .offset((-80).dp, (-120).dp)
+                .background(Color.White.copy(alpha = 0.08f), CircleShape)
+        )
+        Box(
+            modifier = Modifier
+                .size(280.dp)
+                .offset(240.dp, 520.dp)
+                .background(Color.White.copy(alpha = 0.06f), CircleShape)
+        )
+    }
+}
+
+@Composable
 private fun TimerPortraitLayout(
     timerState: TimerState,
     viewModel: TimerViewModel,
-    onFinished: () -> Unit
+    onFinished: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -102,26 +127,42 @@ private fun TimerPortraitLayout(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Activity name
-        Text(
-            text = when (timerState) {
-                is TimerState.Running -> (timerState as TimerState.Running).activityName
-                is TimerState.Paused -> (timerState as TimerState.Paused).activityName
-                else -> ""
-            },
-            style = MaterialTheme.typography.headlineLarge,
-            color = Color.White,
-            fontWeight = FontWeight.Bold
-        )
+        ElevatedCard(
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = Color.White.copy(alpha = 0.08f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(vertical = 18.dp, horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = when (timerState) {
+                        is TimerState.Running -> (timerState as TimerState.Running).activityName
+                        is TimerState.Paused -> (timerState as TimerState.Paused).activityName
+                        else -> "",
+                    },
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "专注进行中",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.78f)
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // Timer display
         TimerDisplay(timerState)
 
         Spacer(modifier = Modifier.height(64.dp))
 
-        // Control buttons
         TimerControls(
             timerState = timerState,
             viewModel = viewModel,
@@ -135,7 +176,7 @@ private fun TimerPortraitLayout(
 private fun TimerLandscapeLayout(
     timerState: TimerState,
     viewModel: TimerViewModel,
-    onFinished: () -> Unit
+    onFinished: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -144,7 +185,6 @@ private fun TimerLandscapeLayout(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Left side: Activity name and timer
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -153,7 +193,7 @@ private fun TimerLandscapeLayout(
                 text = when (timerState) {
                     is TimerState.Running -> (timerState as TimerState.Running).activityName
                     is TimerState.Paused -> (timerState as TimerState.Paused).activityName
-                    else -> ""
+                    else -> "",
                 },
                 style = MaterialTheme.typography.headlineMedium,
                 color = Color.White,
@@ -167,7 +207,6 @@ private fun TimerLandscapeLayout(
 
         Spacer(modifier = Modifier.width(32.dp))
 
-        // Right side: Control buttons
         TimerControls(
             timerState = timerState,
             viewModel = viewModel,
@@ -185,7 +224,6 @@ private fun TimerDisplay(timerState: TimerState) {
         else -> 0L
     }
 
-    // Simple scale animation without infinite repeat
     val scale by animateFloatAsState(
         targetValue = if (timerState is TimerState.Running) 1.0f else 1f,
         animationSpec = spring(
@@ -194,24 +232,28 @@ private fun TimerDisplay(timerState: TimerState) {
         ),
         label = "timer_scale"
     )
-    
+
     val alpha by animateFloatAsState(
         targetValue = if (timerState is TimerState.Running) 1f else 0.7f,
         animationSpec = tween(300),
         label = "timer_alpha"
     )
 
-    // Glassmorphism container for timer
     Box(
         modifier = Modifier
             .background(
-                Color.White.copy(alpha = 0.15f),
-                RoundedCornerShape(32.dp)
+                Brush.linearGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.2f),
+                        Color.White.copy(alpha = 0.1f)
+                    )
+                ),
+                RoundedCornerShape(36.dp)
             )
             .border(
                 width = 2.dp,
-                color = Color.White.copy(alpha = 0.3f),
-                shape = RoundedCornerShape(32.dp)
+                color = Color.White.copy(alpha = 0.28f),
+                shape = RoundedCornerShape(36.dp)
             )
             .padding(horizontal = 48.dp, vertical = 32.dp)
     ) {
@@ -234,10 +276,10 @@ private fun TimerControls(
     timerState: TimerState,
     viewModel: TimerViewModel,
     onFinished: () -> Unit,
-    isLandscape: Boolean
+    isLandscape: Boolean,
 ) {
     val arrangement = if (isLandscape) Arrangement.spacedBy(16.dp) else Arrangement.SpaceEvenly
-    
+
     if (isLandscape) {
         Column(
             verticalArrangement = arrangement,
@@ -260,23 +302,11 @@ private fun TimerControls(
 private fun TimerControlButtons(
     timerState: TimerState,
     viewModel: TimerViewModel,
-    onFinished: () -> Unit
+    onFinished: () -> Unit,
 ) {
-    // Pause/Resume button with glassmorphism
     when (timerState) {
         is TimerState.Running -> {
-            Box(
-                modifier = Modifier
-                    .size(88.dp)
-                    .background(Color.White.copy(alpha = 0.25f), CircleShape)
-                    .border(
-                        width = 2.dp,
-                        color = Color.White.copy(alpha = 0.4f),
-                        shape = CircleShape
-                    )
-                    .clickable { viewModel.onPauseClick() },
-                contentAlignment = Alignment.Center
-            ) {
+            GlassButton(onClick = { viewModel.onPauseClick() }) {
                 Icon(
                     imageVector = Icons.Default.Pause,
                     contentDescription = "暂停",
@@ -286,18 +316,7 @@ private fun TimerControlButtons(
             }
         }
         is TimerState.Paused -> {
-            Box(
-                modifier = Modifier
-                    .size(88.dp)
-                    .background(Color.White.copy(alpha = 0.25f), CircleShape)
-                    .border(
-                        width = 2.dp,
-                        color = Color.White.copy(alpha = 0.4f),
-                        shape = CircleShape
-                    )
-                    .clickable { viewModel.onResumeClick() },
-                contentAlignment = Alignment.Center
-            ) {
+            GlassButton(onClick = { viewModel.onResumeClick() }) {
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
                     contentDescription = "继续",
@@ -309,26 +328,15 @@ private fun TimerControlButtons(
         else -> {}
     }
 
-    // Finish button with glassmorphism
-    Box(
-        modifier = Modifier
-            .size(88.dp)
-            .background(
-                Brush.radialGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.35f),
-                        Color.White.copy(alpha = 0.25f)
-                    )
-                ),
-                CircleShape
+    GlassButton(
+        onClick = { viewModel.onFinishClick(onFinished) },
+        borderColor = Color.White.copy(alpha = 0.5f),
+        backgroundBrush = Brush.radialGradient(
+            colors = listOf(
+                Color.White.copy(alpha = 0.38f),
+                Color.White.copy(alpha = 0.2f)
             )
-            .border(
-                width = 2.dp,
-                color = Color.White.copy(alpha = 0.5f),
-                shape = CircleShape
-            )
-            .clickable { viewModel.onFinishClick(onFinished) },
-        contentAlignment = Alignment.Center
+        )
     ) {
         Icon(
             imageVector = Icons.Default.Check,
@@ -336,5 +344,33 @@ private fun TimerControlButtons(
             tint = Color.White,
             modifier = Modifier.size(44.dp)
         )
+    }
+}
+
+@Composable
+private fun GlassButton(
+    onClick: () -> Unit,
+    borderColor: Color = Color.White.copy(alpha = 0.4f),
+    backgroundBrush: Brush = Brush.radialGradient(
+        colors = listOf(
+            Color.White.copy(alpha = 0.3f),
+            Color.White.copy(alpha = 0.22f)
+        )
+    ),
+    content: @Composable () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(92.dp)
+            .background(backgroundBrush, CircleShape)
+            .border(
+                width = 2.dp,
+                color = borderColor,
+                shape = CircleShape
+            )
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        content()
     }
 }
